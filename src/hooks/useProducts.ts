@@ -55,7 +55,6 @@ function reducer(state: State, action: Action): State {
     case 'SET_QUERY':
       return { ...state, query: action.query };
     case 'SET_DEBOUNCED_QUERY':
-      // Nouvelle recherche → reset page à 0
       return { ...state, debouncedQuery: action.query, page: 0 };
     default:
       return state;
@@ -65,7 +64,6 @@ function reducer(state: State, action: Action): State {
 export function useProducts() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Debounce uniquement sur la query tapée → met à jour debouncedQuery après 500ms
   useDebounce(
     () => {
       dispatch({ type: 'SET_DEBOUNCED_QUERY', query: state.query });
@@ -74,13 +72,11 @@ export function useProducts() {
     [state.query]
   );
 
-  // Fetch déclenché par debouncedQuery OU page (sans délai)
   useEffect(() => {
     const fetchProducts = async () => {
       dispatch({ type: 'SET_LOADING' });
       const skip = state.page * LIMIT;
 
-      // Champ vide → liste complète
       const url = state.debouncedQuery.trim()
         ? `https://dummyjson.com/products/search?limit=${LIMIT}&skip=${skip}&q=${encodeURIComponent(state.debouncedQuery)}`
         : `https://dummyjson.com/products?limit=${LIMIT}&skip=${skip}`;
